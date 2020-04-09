@@ -1,0 +1,1 @@
+nc -zw3 mc.cssu.ca $(cat ssh.port) && echo "open" || echo "closed"
