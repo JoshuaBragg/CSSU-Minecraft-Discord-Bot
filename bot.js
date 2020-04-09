@@ -10,6 +10,8 @@ const log = console.log
 const err = console.error
 
 client.on('ready', () => {
+	log('Starting Discord Bot:', new Date())
+
 	log('Connected as ' + client.user.tag)
 
 	log('Servers:')
