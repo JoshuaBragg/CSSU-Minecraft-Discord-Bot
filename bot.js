@@ -99,7 +99,7 @@ const getSSHStatus = async (responseChannel) => {
 	}
 }
 
-const DEBUG = true
+const DEBUG = false
 const BOT_SECRET_TOKEN = fs.readFileSync('bot.token', 'utf8')
 const STATUS_CHANNEL_ID = DEBUG ? fs.readFileSync('debug_channel.id', 'utf8') : fs.readFileSync('channel.id', 'utf8')
 
