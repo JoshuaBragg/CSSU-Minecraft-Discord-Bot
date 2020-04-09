@@ -1,0 +1,23 @@
+{
+  "name": "cssu-minecraft-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord Bot written by Joshua Bragg for the CSSU Minecraft Server",
+  "main": "bot.js",
+  "dependencies": {
+    "discord.js": "^12.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoshuaBragg/CSSU-Minecraft-Discord-Bot.git"
+  },
+  "author": "Joshua Bragg",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoshuaBragg/CSSU-Minecraft-Discord-Bot/issues"
+  },
+  "homepage": "https://github.com/JoshuaBragg/CSSU-Minecraft-Discord-Bot#readme"
+}
