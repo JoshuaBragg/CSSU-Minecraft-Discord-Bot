@@ -9,19 +9,37 @@ const client = new Discord.Client()
 const log = console.log
 const err = console.error
 
+let currStatus = 1
+let statusChannel
+let serverAdminRole
+
 client.on('ready', () => {
 	log('Starting Discord Bot:', new Date())
 
 	log('Connected as ' + client.user.tag)
 
-	log('Servers:')
+	log('\nServers:')
 	client.guilds.cache.forEach((guild) => {
-		log(' - ' + guild.name)
+		log(' ' + guild.name)
 
+		log(' | CHANNELS')
 		guild.channels.cache.forEach((channel) => {
-			log(` -- ${channel.name} (${channel.type}) - ${channel.id}`)
+			log(` | | ${channel.name} (${channel.type}) - ${channel.id}`)
+			if (channel.id === STATUS_CHANNEL_ID) {
+				statusChannel = channel
+			}
+		})
+
+		log(' | ROLES')
+		guild.roles.cache.forEach((role) => {
+			log(` | | ${role.name} - ${role.id}`)
+			if (role.id === SERVER_ADMIN_ID) {
+				serverAdminRole = role
+			}
 		})
 	})
+
+	startPoll()
 
 }, (error) => {
 	err('Failed to connect')
@@ -101,8 +119,27 @@ const getSSHStatus = async (responseChannel) => {
 	}
 }
 
+const startPoll = () => {
+	const pollFreq = 5 // seconds
+
+	setInterval(() => {
+		ms.init('mc.cssu.ca', 25565, (success) => {
+			if (success !== currStatus) {
+				if (success) {
+					statusChannel.send('Server is back up! Sorry for the inconvenience <3')
+				} else {
+					statusChannel.send('Server is down. ' + `${serverAdminRole}` + ' please help!')
+				}
+
+				currStatus = success
+			}
+		})
+	}, pollFreq * 1000)
+}
+
 const DEBUG = false
 const BOT_SECRET_TOKEN = fs.readFileSync('bot.token', 'utf8')
 const STATUS_CHANNEL_ID = DEBUG ? fs.readFileSync('debug_channel.id', 'utf8') : fs.readFileSync('channel.id', 'utf8')
+const SERVER_ADMIN_ID = fs.readFileSync('server_admin.id', 'utf8')
 
 client.login(BOT_SECRET_TOKEN)
