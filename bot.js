@@ -120,7 +120,7 @@ const getSSHStatus = async (responseChannel) => {
 }
 
 const startPoll = () => {
-	const pollFreq = 5 // seconds
+	const pollFreq = 7 // seconds
 
 	setInterval(() => {
 		ms.init('mc.cssu.ca', 25565, (success) => {
