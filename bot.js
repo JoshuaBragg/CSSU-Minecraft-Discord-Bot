@@ -19,24 +19,23 @@ client.on('ready', () => {
 	log('Connected as ' + client.user.tag)
 
 	log('\nServers:')
+
 	client.guilds.cache.forEach((guild) => {
 		log(' ' + guild.name)
 
 		log(' | CHANNELS')
 		guild.channels.cache.forEach((channel) => {
 			log(` | | ${channel.name} (${channel.type}) - ${channel.id}`)
-			if (channel.id === STATUS_CHANNEL_ID) {
-				statusChannel = channel
-			}
 		})
+
+		statusChannel = guild.channels.cache.get(STATUS_CHANNEL_ID)
 
 		log(' | ROLES')
 		guild.roles.cache.forEach((role) => {
 			log(` | | ${role.name} - ${role.id}`)
-			if (role.id === SERVER_ADMIN_ID) {
-				serverAdminRole = role
-			}
 		})
+
+		serverAdminRole = guild.roles.cache.get(SERVER_ADMIN_ID)
 	})
 
 	startPoll()
@@ -64,6 +63,8 @@ const processMessage = (msg) => {
 		getServerStatus(msg.channel)
 	} else if (content === 'ssh-status') {
 		getSSHStatus(msg.channel)
+	} else if (content === 'kill') {
+		killBot(msg)
 	} else if (content === 'mirin') {
 		msg.channel.send('What does that mean??')
 	} else if (content === 'help') {
@@ -119,6 +120,15 @@ const getSSHStatus = async (responseChannel) => {
 	}
 }
 
+const killBot = (msg) => {
+	if (msg.member.roles.member._roles.includes(SERVER_ADMIN_ID)) {
+		msg.channel.send('Ouch okay, guess I am dead now :(')
+		
+		// Timeout to ensure message is sent
+		setTimeout(() => process.exit(), 1500)
+	}
+}
+
 const startPoll = () => {
 	const pollFreq = 7 // seconds
 
@@ -137,7 +147,7 @@ const startPoll = () => {
 	}, pollFreq * 1000)
 }
 
-const DEBUG = false
+const DEBUG = true
 const BOT_SECRET_TOKEN = fs.readFileSync('bot.token', 'utf8')
 const STATUS_CHANNEL_ID = DEBUG ? fs.readFileSync('debug_channel.id', 'utf8') : fs.readFileSync('channel.id', 'utf8')
 const SERVER_ADMIN_ID = fs.readFileSync('server_admin.id', 'utf8')
