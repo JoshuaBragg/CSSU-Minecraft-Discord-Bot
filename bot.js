@@ -97,7 +97,7 @@ const getServerStatus = (responseChannel) => {
 		if (success) {
 			responseChannel.send('Server is up and running with ' + ms.current_players + (ms.current_players === '1' ? ' player' : ' players') + ' online')
 		} else {
-			responseChannel.send('The minecraft server is down. Unable to reach server. Ping @Server Admins to get assistance')
+			responseChannel.send('The minecraft server is down. Unable to reach server. ' + `${serverAdminRole}` + ' help please!')
 		}
 	})
 }
@@ -126,11 +126,13 @@ const killBot = (msg) => {
 
 		// Timeout to ensure message is sent
 		setTimeout(() => process.exit(), 1500)
+	} else {
+		msg.channel.send('Haha you can\'t kill me! Nice try tho peasant ;)')
 	}
 }
 
 const startPoll = () => {
-	const pollFreq = 7 // seconds
+	const pollFreq = 11 // seconds
 
 	setInterval(() => {
 		ms.init('mc.cssu.ca', 25565, (success) => {
