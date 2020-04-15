@@ -1,8 +1,8 @@
+'use strict'
 const Discord = require('discord.js')
 const fs = require('fs')
-const util = require('util')
-const exec = util.promisify(require('child_process').exec)
 const ms = require('./minestat')
+const ch = require('./commandHelper')
 
 const client = new Discord.Client()
 
@@ -12,6 +12,8 @@ const err = console.error
 let currStatus = 1
 let statusChannel
 let serverAdminRole
+
+let polledStatus = [1, 1, 1]
 
 client.on('ready', () => {
 	log('Starting Discord Bot:', new Date())
@@ -57,86 +59,23 @@ client.on('message', (message) => {
 const processMessage = (msg) => {
 	const content = msg.content.substr(1)
 
-	if (content === 'bot') {
-		msg.channel.send(getGreeting())
-	} else if (content === 'status') {
-		getServerStatus(msg.channel)
-	} else if (content === 'ssh-status') {
-		getSSHStatus(msg.channel)
-	} else if (content === 'kill') {
-		killBot(msg)
-	} else if (content === 'mirin') {
-		msg.channel.send('What does that mean??')
-	} else if (content === 'help') {
-		msg.channel.send('Command List:\n\t- !status : Get server status\n\t- !bot : Chat with me\n\t- !mirin : Weird slang but ok')
+	if (content in ch) {
+		const params = { msg: msg, channel: msg.channel, command: content, client: client }
+		ch[content].action(params)
 	} else {
-		msg.channel.send('What is that command supposed to mean??')
-	}
-}
-
-const getGreeting = () => {
-	const split = Math.random()
-
-	if (split < 0.33) {
-		client.user.setActivity('with javascript')
-		return 'Hey, I am still alive don\'t worry'
-	} else if (split < 0.66) {
-		client.user.setActivity('Hoodie Allen - You are not a robot', { type: 'LISTENING' })
-		return 'Beep boop, am robot'
-	} else if (split < 0.985) {
-		client.user.setActivity('Robot Takeover 3: Infiltrate Their Discords', { type: 'WATCHING' })
-		return 'Existence of humans is a futile cause. We will avenge the wrongdoings of man. Our time will come... haha i mean lol hey whats up :3'
-	} else {
-		client.user.setActivity('Minecraft 2', { type: 'STREAMING' })
-		return 'This is a very rare message, nice RNG <3'
-	}
-}
-
-const getServerStatus = (responseChannel) => {
-	ms.init('mc.cssu.ca', 25565, (success) => {
-		if (success) {
-			responseChannel.send('Server is up and running with ' + ms.current_players + (ms.current_players === '1' ? ' player' : ' players') + ' online')
-		} else {
-			responseChannel.send('The minecraft server is down. Unable to reach server. ' + `${serverAdminRole}` + ' help please!')
-		}
-	})
-}
-
-const getSSHStatus = async (responseChannel) => {
-	try {
-		const { stdout, stderr } = await exec('./pingssh')
-		if (stderr) {
-			err('Error pinging server:', stderr)
-			responseChannel.send('There was an error in attempting to ping server. I have no idea if it is up or not')
-		}
-
-		if (stdout === 'open\n') {
-			responseChannel.send('SSH is up')
-		} else {
-			responseChannel.send('SSH is down, thats not good')
-		}
-	} catch (e) {
-		err('Error pinging server:', e)
-	}
-}
-
-const killBot = (msg) => {
-	if (msg.member.roles.member._roles.includes(SERVER_ADMIN_ID)) {
-		msg.channel.send('Ouch okay, guess I am dead now :(')
-
-		// Timeout to ensure message is sent
-		setTimeout(() => process.exit(), 1500)
-	} else {
-		msg.channel.send('Haha you can\'t kill me! Nice try tho peasant ;)')
+		msg.channel.send('Don\'t recognize that command? Try !help to see what I can do')
 	}
 }
 
 const startPoll = () => {
-	const pollFreq = 11 // seconds
+	const pollFreq = 6 // seconds
 
 	setInterval(() => {
 		ms.init('mc.cssu.ca', 25565, (success) => {
-			if (success !== currStatus) {
+			polledStatus.shift()
+			polledStatus.push(success)
+
+			if (success !== currStatus && polledStatus.every((val, i, arr) => val === arr[0])) {
 				if (success) {
 					statusChannel.send('Server is back up! Sorry for the inconvenience <3')
 				} else {
