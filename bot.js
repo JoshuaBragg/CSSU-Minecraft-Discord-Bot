@@ -95,7 +95,7 @@ const startPoll = () => {
 	}, pollFreq * 1000)
 }
 
-const DEBUG = true
+const DEBUG = false
 const BOT_SECRET_TOKEN = fs.readFileSync('bot.token', 'utf8')
 const STATUS_CHANNEL_ID = DEBUG ? fs.readFileSync('debug_channel.id', 'utf8') : fs.readFileSync('channel.id', 'utf8')
 const SERVER_ADMIN_ID = fs.readFileSync('server_admin.id', 'utf8')
