@@ -1,15 +1,22 @@
 'use strict'
 const exec = require('util').promisify(require('child_process').exec)
+const fs = require('fs')
 const ms = require('./minestat')
 
 const log = console.log
 const err = console.error
 
-const getCommandList = (channel) => {
-	let list = 'Here is a list of what I can do:'
+const permissionGroups = JSON.parse(fs.readFileSync('permissionGroups.json', 'utf8'))
+
+const getCommandList = (msg, getUserGroup) => {
+	let list = 'Here is a list of commands you can run:'
+
+	const userGroup = getUserGroup(msg)
 
 	for (let com in commands) {
-		list += `\n\t- ${com}: ${commands[com].description}`
+		if (userGroup >= commands[com].permission) {
+			list += `\n\t- ${com}: ${commands[com].description}`
+		}
 	}
 
 	return list
@@ -43,30 +50,34 @@ const reportServerStatus = (responseChannel) => {
 	})
 }
 
-const reportSSHStatus = async (responseChannel) => {
-	try {
-		const { stdout, stderr } = await exec('./pingssh')
-		if (stderr) {
-			err('Error pinging server:', stderr)
-			responseChannel.send('There was an error in attempting to ping server. I have no idea if it is up or not')
-		}
+const reportSSHStatus = async (msg, getUserGroup) => {
+	if (getUserGroup(msg) >= commands.sshstatus.permission) {
+		try {
+			const { stdout, stderr } = await exec('./pingssh')
+			if (stderr) {
+				err('Error pinging server:', stderr)
+				msg.channel.send('There was an error in attempting to ping server. I have no idea if it is up or not')
+			}
 
-		if (stdout === 'open\n') {
-			responseChannel.send('SSH is up')
-		} else {
-			responseChannel.send('SSH is down, thats not good')
+			if (stdout === 'open\n') {
+				msg.channel.send('SSH is up')
+			} else {
+				msg.channel.send('SSH is down, thats not good')
+			}
+		} catch (e) {
+			err('Error pinging server:', e)
 		}
-	} catch (e) {
-		err('Error pinging server:', e)
+	} else {
+		msg.channel.send('You are not authorized to check ssh status')
 	}
 }
 
-const killBot = (msg) => {
-	if (msg.member.roles.member._roles.includes(SERVER_ADMIN_ID)) {
+const killBot = (msg, getUserGroup) => {
+	if (getUserGroup(msg) >= commands.kill.permission) {
 		msg.channel.send('Ouch okay, guess I am dead now :(')
 
 		// Timeout to ensure message is sent
-		setTimeout(() => process.exit(), 1500)
+		setTimeout(() => process.exit(), 750)
 	} else {
 		msg.channel.send('Haha you can\'t kill me! Nice try tho peasant ;)')
 	}
@@ -77,31 +88,36 @@ const commands = {
 		description: 'Chat with the bot',
 		action: (params) => {
 			params.channel.send(getGreeting(params.client))
-		}
+		},
+		permission: permissionGroups['default']
 	},
 	status: {
 		description: 'Get server status',
 		action: (params) => {
 			reportServerStatus(params.channel)
-		}
+		},
+		permission: permissionGroups['default']
 	},
 	sshstatus: {
 		description: 'Check status of ssh connection',
 		action: (params) => {
-			reportSSHStatus(params.channel)
-		}
+			reportSSHStatus(params.msg, params.getUserGroup)
+		},
+		permission: permissionGroups['admin']
 	},
 	kill: {
 		description: 'Kill the bot (don\'t do that pls <3)',
 		action: (params) => {
-			killBot(params.msg)
-		}
+			killBot(params.msg, params.getUserGroup)
+		},
+		permission: permissionGroups['admin']
 	},
 	help: {
 		description: 'List all commands',
 		action: (params) => {
-			params.channel.send(getCommandList())
-		}
+			params.channel.send(getCommandList(params.msg, params.getUserGroup))
+		},
+		permission: permissionGroups['default']
 	}
 }
 

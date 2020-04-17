@@ -13,6 +13,8 @@ let currStatus = 1
 let statusChannel
 let serverAdminRole
 
+const permissionGroups = JSON.parse(fs.readFileSync('permissionGroups.json', 'utf8'))
+
 let polledStatus = [1, 1, 1]
 
 client.on('ready', () => {
@@ -57,14 +59,19 @@ client.on('message', (message) => {
 })
 
 const processMessage = (msg) => {
-	const content = msg.content.substr(1)
+	const command = msg.content.substr(1)
 
-	if (content in ch) {
-		const params = { msg: msg, channel: msg.channel, command: content, client: client }
-		ch[content].action(params)
+	if (command in ch) {
+		const params = { msg: msg, channel: msg.channel, command: command, client: client, getUserGroup: getUserGroup }
+		ch[command].action(params)
 	} else {
 		msg.channel.send('Don\'t recognize that command? Try !help to see what I can do')
 	}
+}
+
+const getUserGroup = (msg) => {
+	// for now return 1 if server admin and 0 otherwise
+	return msg.member.roles.member._roles.includes(SERVER_ADMIN_ID) ? 1 : 0
 }
 
 const startPoll = () => {
@@ -88,7 +95,7 @@ const startPoll = () => {
 	}, pollFreq * 1000)
 }
 
-const DEBUG = false
+const DEBUG = true
 const BOT_SECRET_TOKEN = fs.readFileSync('bot.token', 'utf8')
 const STATUS_CHANNEL_ID = DEBUG ? fs.readFileSync('debug_channel.id', 'utf8') : fs.readFileSync('channel.id', 'utf8')
 const SERVER_ADMIN_ID = fs.readFileSync('server_admin.id', 'utf8')
