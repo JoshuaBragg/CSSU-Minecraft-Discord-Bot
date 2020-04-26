@@ -7,8 +7,14 @@ const log = console.log
 const err = console.error
 
 const permissionGroups = JSON.parse(fs.readFileSync('permissionGroups.json', 'utf8'))
+const SERVER_ADMIN_ID = fs.readFileSync('server_admin.id', 'utf8')
 
-const getCommandList = (msg, getUserGroup) => {
+const getUserGroup = (msg) => {
+	// For only two roles return 1 if server admin and 0 otherwise
+	return msg.member.roles.member._roles.includes(SERVER_ADMIN_ID) ? 1 : 0
+}
+
+const getCommandList = (msg) => {
 	let list = 'Here is a list of commands you can run:'
 
 	const userGroup = getUserGroup(msg)
@@ -50,7 +56,7 @@ const reportServerStatus = (responseChannel) => {
 	})
 }
 
-const reportSSHStatus = async (msg, getUserGroup) => {
+const reportSSHStatus = async (msg) => {
 	if (getUserGroup(msg) >= commands.sshstatus.permission) {
 		try {
 			const { stdout, stderr } = await exec('./pingssh')
@@ -72,7 +78,7 @@ const reportSSHStatus = async (msg, getUserGroup) => {
 	}
 }
 
-const killBot = (msg, getUserGroup) => {
+const killBot = (msg) => {
 	if (getUserGroup(msg) >= commands.kill.permission) {
 		msg.channel.send('Ouch okay, guess I am dead now :(')
 
@@ -101,21 +107,21 @@ const commands = {
 	sshstatus: {
 		description: 'Check status of ssh connection',
 		action: (params) => {
-			reportSSHStatus(params.msg, params.getUserGroup)
+			reportSSHStatus(params.msg)
 		},
 		permission: permissionGroups['admin']
 	},
 	kill: {
 		description: 'Kill the bot (don\'t do that pls <3)',
 		action: (params) => {
-			killBot(params.msg, params.getUserGroup)
+			killBot(params.msg)
 		},
 		permission: permissionGroups['admin']
 	},
 	help: {
 		description: 'List all commands',
 		action: (params) => {
-			params.channel.send(getCommandList(params.msg, params.getUserGroup))
+			params.channel.send(getCommandList(params.msg))
 		},
 		permission: permissionGroups['default']
 	}
