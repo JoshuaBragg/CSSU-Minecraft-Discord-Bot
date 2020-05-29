@@ -1,3 +1,3 @@
 # CSSU Minecraft Discord Bot
 
-A discord bot written for the CSSU Minecraft Discord allowing players to check server status and interact with bot
+A discord bot used to provide additional functionality to the CSSU Minecraft Server Discord which currently has over 60 users. The bot provides functionality to check how many playerse are online, notifying discord users when the minecraft server goes down and when it is back online, along with other functionality.

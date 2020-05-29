@@ -12,7 +12,7 @@ const err = console.error
 let currStatus = 1
 let statusChannel
 let serverAdminRole
-let polledStatusQueue = [1, 1, 1]
+let polledStatusQueue = [1, 1, 1, 1, 1]
 
 const DEBUG = false
 const permissionGroups = JSON.parse(fs.readFileSync('permissionGroups.json', 'utf8'))
